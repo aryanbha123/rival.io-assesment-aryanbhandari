@@ -196,18 +196,18 @@ const ProjectTable: React.FC = () => {
         <div className='text-center text-gray-500'>Loading projects...</div>
       ) : (
         <>
-          {/* 🔍 Filters */}
-          <div className='flex items-center justify-between'>
-            <div className='flex flex-col sm:flex-row sm:items-center gap-3 mb-7 flex-wrap'>
+          <div className='flex flex-col md:flex-row md:items-center justify-between gap-3 mb-7 w-full'>
+            {/* Search Filters */}
+            <div className='flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap w-full md:flex-1'>
               <input
                 type='text'
                 placeholder='Search project by ID...'
-                className='placeholder:text-gray-500 border-gray-300 rounded-xl border-2 text-sm px-4 py-2'
+                className='placeholder:text-gray-500 border-gray-300 rounded-xl border-2 text-sm px-4 py-2 w-full sm:w-64 md:w-80 lg:w-96'
                 value={searchId}
                 onChange={e => setSearchId(e.target.value)}
               />
               <select
-                className='border-gray-300 rounded-xl border-2 text-sm px-4 py-2'
+                className='border-gray-300 rounded-xl border-2 text-sm px-4 py-2 w-full sm:w-auto'
                 value={searchPriority}
                 onChange={e => setSearchPriority(e.target.value)}
               >
@@ -217,7 +217,7 @@ const ProjectTable: React.FC = () => {
                 <option value='low'>Low</option>
               </select>
               <select
-                className='border-gray-300 rounded-xl border-2 text-sm px-4 py-2'
+                className='border-gray-300 rounded-xl border-2 text-sm px-4 py-2 w-full sm:w-auto'
                 value={searchStatus}
                 onChange={e => setSearchStatus(e.target.value)}
               >
@@ -227,14 +227,18 @@ const ProjectTable: React.FC = () => {
                 <option value='completed'>Completed</option>
               </select>
             </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className={`${bgGradient(
-                mode
-              )} px-3 py-1 cursor-pointer rounded-md text-sm font-medium transition flex items-center text-white`}
-            >
-              <Add sx={{ fontSize: 20 }} /> Add Project
-            </button>
+
+            {/* Add Project Button */}
+            <div className='flex justify-center mt-3 md:mt-0'>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className={`${bgGradient(
+                  mode
+                )} px-4 py-2 cursor-pointer rounded-md text-sm font-medium transition flex items-center text-white`}
+              >
+                <Add sx={{ fontSize: 20 }} className='mr-1' /> Add Project
+              </button>
+            </div>
           </div>
 
           {/* 📊 Table */}
