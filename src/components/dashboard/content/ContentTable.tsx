@@ -2,6 +2,9 @@ import { Avatar, LinearProgress } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import { useThemeMode } from '../../../context/ThemeContext'
 import { bgGradient } from '../../../assets/colors'
+import { Add } from '@mui/icons-material'
+import ModalBox from './ModalBox'
+import ProjectDrawer from './ProjectDrawer'
 
 interface User {
   id: number
@@ -9,7 +12,7 @@ interface User {
   email: string
 }
 
-interface Project {
+export interface Project {
   id: string
   title: string
   description: string
@@ -86,7 +89,55 @@ const ProjectTable: React.FC = () => {
   const [searchPriority, setSearchPriority] = useState('')
   const [searchStatus, setSearchStatus] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [allUsers, setAllUsers] = useState<User[]>([]) // store all users
   const projectsPerPage = 5
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [newProject, setNewProject] = useState({
+    title: '',
+    description: '',
+    priority: 'medium',
+    deadline: '',
+    teamMembers: [] as number[] // store selected user IDs
+  })
+
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+
+  const handleAddProject = () => {
+    if (!newProject.title.trim()) return
+
+    const id = `PRJ-${String(projects.length + 1).padStart(3, '0')}`
+
+    // find team members by ID
+    const selectedTeam = allUsers.filter(u =>
+      newProject.teamMembers.includes(u.id)
+    )
+
+    const project: Project = {
+      id,
+      title: newProject.title,
+      description: newProject.description,
+      teamMembers: selectedTeam,
+      priority: newProject.priority as 'high' | 'medium' | 'low',
+      status: 'pending',
+      progress: 0,
+      tasksCompleted: 0,
+      totalTasks: 20,
+      deadline: newProject.deadline || new Date().toISOString().split('T')[0],
+      budget: 5000,
+      createdBy: { id: 1, name: 'You', email: 'you@example.com' }
+    }
+
+    setProjects([project, ...projects])
+    setIsModalOpen(false)
+    setNewProject({
+      title: '',
+      description: '',
+      priority: 'medium',
+      deadline: '',
+      teamMembers: []
+    })
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -96,6 +147,7 @@ const ProjectTable: React.FC = () => {
           fetch('https://jsonplaceholder.typicode.com/posts')
         ])
         const users: User[] = await usersRes.json()
+        setAllUsers(users) // save all users
         const posts = await postsRes.json()
         const transformedProjects = posts.map((post: any) =>
           transformToProject(post, users)
@@ -145,43 +197,43 @@ const ProjectTable: React.FC = () => {
       ) : (
         <>
           {/* 🔍 Filters */}
-          <div className='flex gap-3 mb-7 flex-wrap'>
-            <input
-              type='text'
-              placeholder='Search project by ID...'
-              className='placeholder:text-gray-500 border-gray-300 rounded-xl border-2 text-sm px-4 py-2'
-              value={searchId}
-              onChange={e => setSearchId(e.target.value)}
-            />
-            <select
-              className='border-gray-300 rounded-xl border-2 text-sm px-4 py-2'
-              value={searchPriority}
-              onChange={e => setSearchPriority(e.target.value)}
-            >
-              <option value=''>All Priorities</option>
-              <option value='high'>High</option>
-              <option value='medium'>Medium</option>
-              <option value='low'>Low</option>
-            </select>
-            <select
-              className='border-gray-300 rounded-xl border-2 text-sm px-4 py-2'
-              value={searchStatus}
-              onChange={e => setSearchStatus(e.target.value)}
-            >
-              <option value=''>All Statuses</option>
-              <option value='active'>Active</option>
-              <option value='pending'>Pending</option>
-              <option value='completed'>Completed</option>
-            </select>
+          <div className='flex items-center justify-between'>
+            <div className='flex flex-col sm:flex-row sm:items-center gap-3 mb-7 flex-wrap'>
+              <input
+                type='text'
+                placeholder='Search project by ID...'
+                className='placeholder:text-gray-500 border-gray-300 rounded-xl border-2 text-sm px-4 py-2'
+                value={searchId}
+                onChange={e => setSearchId(e.target.value)}
+              />
+              <select
+                className='border-gray-300 rounded-xl border-2 text-sm px-4 py-2'
+                value={searchPriority}
+                onChange={e => setSearchPriority(e.target.value)}
+              >
+                <option value=''>All Priorities</option>
+                <option value='high'>High</option>
+                <option value='medium'>Medium</option>
+                <option value='low'>Low</option>
+              </select>
+              <select
+                className='border-gray-300 rounded-xl border-2 text-sm px-4 py-2'
+                value={searchStatus}
+                onChange={e => setSearchStatus(e.target.value)}
+              >
+                <option value=''>All Statuses</option>
+                <option value='active'>Active</option>
+                <option value='pending'>Pending</option>
+                <option value='completed'>Completed</option>
+              </select>
+            </div>
             <button
-              className='bg-blue-500 text-white px-4 py-2 rounded-xl'
-              onClick={() => {
-                setSearchId('')
-                setSearchPriority('')
-                setSearchStatus('')
-              }}
+              onClick={() => setIsModalOpen(true)}
+              className={`${bgGradient(
+                mode
+              )} px-3 py-1 cursor-pointer rounded-md text-sm font-medium transition flex items-center text-white`}
             >
-              Clear
+              <Add sx={{ fontSize: 20 }} /> Add Project
             </button>
           </div>
 
@@ -211,7 +263,14 @@ const ProjectTable: React.FC = () => {
                 {currentProjects.map((p, idx) => {
                   const teamColors = getTeamColors(p.teamMembers)
                   return (
-                    <tr key={idx} className={`${rowHover}`}>
+                    <tr
+                      onClick={() => {
+                        setSelectedProject(p)
+                        setOpenDrawer(true)
+                      }}
+                      key={idx}
+                      className={`${rowHover} cursor-pointer`}
+                    >
                       {/* Project */}
                       <td
                         className={`px-4 py-4 flex items-center gap-3 text-sm border-b ${borderColor}`}
@@ -253,14 +312,19 @@ const ProjectTable: React.FC = () => {
                             </Avatar>
                           ))}
                           {p.teamMembers.length > 4 && (
-                            <Avatar  sx={{
+                            <Avatar
+                              sx={{
                                 width: 30,
                                 height: 30,
                                 fontSize: '12px',
-                                bgcolor:teamColors[Math.floor(Math.random() * (3 - 0 + 1)) + 0],
+                                bgcolor:
+                                  teamColors[
+                                    Math.floor(Math.random() * (3 - 0 + 1)) + 0
+                                  ],
                                 border: '1px solid white',
                                 color: 'white'
-                              }} >
+                              }}
+                            >
                               +{p.teamMembers.length - 4}
                             </Avatar>
                           )}
@@ -362,33 +426,33 @@ const ProjectTable: React.FC = () => {
               </tbody>
             </table>
 
-          {/* 📑 Pagination */}
-          <div className={`flex items-center justify-between py-3 px-4`}>
-            <div className='text-sm'>
-              Showing {indexOfFirst + 1}-
-              {Math.min(indexOfLast, filteredProjects.length)} of{' '}
-              {filteredProjects.length}
-            </div>
-            <div className='flex justify-center gap-2 mt-4'>
-              <button
-                className={`px-3 py-1 text-xs cursor-pointer rounded-md ${
-                  mode === 'dark'
-                    ? 'bg-gray-700 text-gray-300'
-                    : 'bg-gray-200 text-gray-700'
-                } disabled:opacity-50`}
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-
-              {Array.from(
-                { length: endPage - startPage + 1 },
-                (_, i) => startPage + i
-              ).map(pageNum => (
+            {/* 📑 Pagination */}
+            <div className={`flex items-center justify-between py-3 px-4`}>
+              <div className='text-sm'>
+                Showing {indexOfFirst + 1}-
+                {Math.min(indexOfLast, filteredProjects.length)} of{' '}
+                {filteredProjects.length}
+              </div>
+              <div className='flex justify-center gap-2 mt-4'>
                 <button
-                  key={pageNum}
-                  className={`px-3 py-1 cursor-pointer rounded-md text-sm font-medimm transition
+                  className={`px-3 py-1 text-xs cursor-pointer rounded-md ${
+                    mode === 'dark'
+                      ? 'bg-gray-700 text-gray-300'
+                      : 'bg-gray-200 text-gray-700'
+                  } disabled:opacity-50`}
+                  onClick={handlePrev}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+
+                {Array.from(
+                  { length: endPage - startPage + 1 },
+                  (_, i) => startPage + i
+                ).map(pageNum => (
+                  <button
+                    key={pageNum}
+                    className={`px-3 py-1 cursor-pointer rounded-md text-sm font-medimm transition
                     ${
                       currentPage === pageNum
                         ? `text-white ${bgGradient(mode)}`
@@ -396,28 +460,39 @@ const ProjectTable: React.FC = () => {
                         ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
-                  onClick={() => setCurrentPage(pageNum)}
-                >
-                  {pageNum}
-                </button>
-              ))}
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
 
-              <button
-                className={`px-3 py-1 text-xs cursor-pointer rounded-md ${
-                  mode === 'dark'
-                    ? 'bg-gray-700 text-gray-300'
-                    : 'bg-gray-200 text-gray-700'
-                } disabled:opacity-50`}
-                onClick={handleNext}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
+                <button
+                  className={`px-3 py-1 text-xs cursor-pointer rounded-md ${
+                    mode === 'dark'
+                      ? 'bg-gray-700 text-gray-300'
+                      : 'bg-gray-200 text-gray-700'
+                  } disabled:opacity-50`}
+                  onClick={handleNext}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
-
-          </div>
-
+          <ModalBox
+            isModalOpen={isModalOpen}
+            setNewProject={setNewProject}
+            handleAddProject={handleAddProject}
+            newProject={newProject}
+            setIsModalOpen={setIsModalOpen}
+            allUsers={allUsers}
+          />
+          <ProjectDrawer
+            open={openDrawer}
+            onClose={() => setOpenDrawer(false)}
+            project={selectedProject}
+          />
         </>
       )}
     </section>

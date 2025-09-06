@@ -34,7 +34,7 @@ const DashboardHeader: React.FC<{}> = () => {
 
       <div className='flex justify-end gap-3'>
         <IconButton onClick={toggleMode}>
-          {mode !== 'light' ? <Brightness4 /> : <Brightness7 />}
+          {mode !== 'light' ? <Brightness4 sx={{color:"white"}} /> : <Brightness7 sx={{color:"white"}} />}
         </IconButton>
         <Avatar
           sx={{
