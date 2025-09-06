@@ -34,8 +34,10 @@ export const ThemeModeProvider = ({ children }: { children: ReactNode }) => {
     if (stored) {
       setMode(stored)
     }
-  }, []);
-
+  }, [])
+  useEffect(() => {
+    localStorage.setItem('theme', mode)
+  }, [mode])
   const toggleMode = () => {
     setMode(prev => (prev === 'light' ? 'dark' : 'light'))
   }
