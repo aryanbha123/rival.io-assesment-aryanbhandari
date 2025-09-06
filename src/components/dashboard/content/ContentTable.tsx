@@ -242,7 +242,7 @@ const ProjectTable: React.FC = () => {
           </div>
 
           {/* 📊 Table */}
-          <div className='relative flex flex-col w-full h-full overflow-scroll text-gray-700 shadow-md rounded-xl bg-clip-border'>
+          <div className='relative  flex flex-col w-full h-full overflow-scroll border-[1px] border-gray-200 text-gray-700 shadow-mlg rounded-xl bg-clip-border'>
             <table className='w-full text-left table-auto min-w-max'>
               <thead className={`${headerBg} uppercase`}>
                 <tr>

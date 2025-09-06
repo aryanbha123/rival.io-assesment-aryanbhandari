@@ -83,7 +83,7 @@ const DashboardContent: React.FC = () => {
       </div>
 
       {/* Table section with horizontal scroll on mobile */}
-      <div className="mt-8 overflow-x-auto">
+      <div className="mt-3 overflow-x-auto">
         <ContentTable />
       </div>
     </section>
