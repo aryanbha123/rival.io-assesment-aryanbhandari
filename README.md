@@ -35,6 +35,7 @@ Live Demo: [Click Here](https://rival-io-assesment-aryanbhandari-88odi7fjw.verce
   - Search and filter projects
   - Modal dialog for adding new projects
   - Deployed on Vercel for easy acces
+  - Save theme locally
 
 
 ### Dashboard View
